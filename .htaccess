@@ -1,0 +1,31 @@
+# Disable directory listing
+Options -Indexes
+
+# Set default index file
+DirectoryIndex index.php
+
+# Prevent access to hidden files (e.g. .git, .env, .htaccess)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Prevent access to sensitive files like SQL dumps or logs
+<FilesMatch "\.(sql|log)$">
+    Require all denied
+</FilesMatch>
+
+# Enable URL rewriting
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Prevent direct access to config and includes directories
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^includes/ - [F,L]
+    # Force www to non-www (e.g., www.henarat.com -> henarat.com)
+    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    # Force HTTPS for all requests
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>

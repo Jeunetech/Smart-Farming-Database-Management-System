@@ -5,9 +5,9 @@
  */
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'smartfarming');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'henaratc_db');
+define('DB_USER', 'henaratc_user');
+define('DB_PASS', 'SmartFarming123**');
 define('DB_CHARSET', 'utf8mb4');
 
 /**
