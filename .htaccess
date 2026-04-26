@@ -18,6 +18,6 @@ DirectoryIndex index.php
     RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
     RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
-    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTPS} on
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
