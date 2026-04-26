@@ -4,10 +4,11 @@
  * PDO connection to MySQL with JSON response helpers
  */
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'henaratc_db');
-define('DB_USER', 'henaratc_user');
-define('DB_PASS', 'SmartFarming123**');
+define('DB_HOST', getenv('MYSQLHOST') ?: 'roundhouse.proxy.rlwy.net');
+define('DB_PORT', getenv('MYSQLPORT') ?: '27574');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'railway');
+define('DB_USER', getenv('MYSQLUSER') ?: 'root');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'laLqFqcdBukRPLukVuwKRgXBtoyoKkoL');
 define('DB_CHARSET', 'utf8mb4');
 
 /**
@@ -16,7 +17,8 @@ define('DB_CHARSET', 'utf8mb4');
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        // Add port to DSN
+        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
