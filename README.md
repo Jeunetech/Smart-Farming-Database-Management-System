@@ -26,12 +26,41 @@ The application is configured to communicate with a remote **Railway MySQL** dat
 
 ## 👥 Team Members & Contributions
 
-This project was developed collaboratively as a group assignment. Below are the specific contributions of each team member:
+This project was developed collaboratively as a group assignment. Below are the specific roles and responsibilities of the team:
 
-| Team Member | Student ID | Contributions |
-| :--- | :---: | :--- |
-| **Jeunetech AUDRY MWANSA** | *(Not provided)* | Configured the cloud infrastructure and successfully set up the MySQL Database on **Railway**. |
-| **Taraneh Khorshidi** | 22214139 | Developed both the **Front-End** and **Back-End** architecture, and successfully integrated the PHP application to connect with the Railway database. |
-| **Mahisa Ahadi** | 22213656 | Designed and extracted the **Database Schemas**, ensuring relational integrity and defining the project's core data structure. |
+### 👤 Mahisa Ahadi (22213656) – Database Designer (ERD & Schema)
+* **Responsibilities:** 
+  * Design the full database structure (minimum 6 tables)
+  * Create ER Diagram (ERD)
+  * Define: Primary Keys, Foreign Keys, Relationships (1-1, 1-N, N-M)
+  * Convert ERD into Relational Model
+  * Decide constraints (NOT NULL, UNIQUE, DEFAULT, etc.)
+* **Deliverables:** ER Diagram (image or PDF) and Relational schema
 
+### 👤 Audry Kyungu Mwansa (22109381) – Database Implementation (DDL & DML)
+* **Responsibilities:** 
+  * Write all DDL (Data Definition Language): `CREATE TABLE`, Constraints
+  * Write DML (Data Manipulation Language): `INSERT`, `UPDATE`, `DELETE`
+  * Populate database with sample data
+* **Deliverables:** SQL scripts for creating tables and inserting sample data
 
+### 👤 Taraneh Khorsihidi (22214139) – Advanced SQL & PL/SQL Developer
+* **Responsibilities:** 
+  * Write 5–7 complex SQL queries, including: `JOIN`, `GROUP BY`, `ORDER BY`, Aggregate functions (`SUM`, `AVG`, `COUNT`)
+  * Write at least 5 PL/SQL blocks: Procedures, Functions, Triggers
+* **Deliverables:** SQL queries with outputs and PL/SQL code with explanations
+
+### 👤 Maryam Ahmadi (22314265) – Frontend / GUI Developer
+* **Responsibilities:** 
+  * Design and implement GUI (User Interface) using Web technologies (HTML/CSS/JavaScript)
+  * Create at least 5 screens, such as: Login/Register page, Dashboard, Data management (Insert/Update/Delete)
+  * Connect UI to database (basic CRUD operations)
+* **Deliverables:** UI code and Screenshots of working app
+
+### 👤 Rana Razavi (22101014) – Backend & Deployment + GitHub Manager
+* **Responsibilities:** 
+  * Handle database connection (API or direct connection)
+  * Manage deployment using platforms like Railway
+  * Setup project on GitHub (Create repository, add collaborators, upload all files including ERD, SQL, code)
+  * Ensure everything works together
+* **Deliverables:** Working deployed database/app and GitHub repository (public link)
