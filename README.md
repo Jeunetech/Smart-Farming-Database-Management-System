@@ -1,6 +1,5 @@
 # Smart Farming Database Management System
 
-![Project Status](https://img.shields.io/badge/Status-Active-success)
 ![Language](https://img.shields.io/badge/Language-PHP%20%7C%20HTML%20%7C%20CSS%20%7C%20JS-blue)
 ![Database](https://img.shields.io/badge/Database-MySQL%20(Railway)-orange)
 
