@@ -5,7 +5,6 @@ requireLogin();
 $pdo = getDB();
 $role = $_SESSION['user_role'];
 $userId = $_SESSION['user_id'];
-// Get farmers for dropdown
 $farmers = $pdo->query("SELECT f.user_id, u.name FROM farmer f JOIN `user` u ON f.user_id = u.user_id")->fetchAll();
 ?>
 <div class="action-bar">

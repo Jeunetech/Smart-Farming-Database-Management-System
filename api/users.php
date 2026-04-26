@@ -1,7 +1,4 @@
 <?php
-/**
- * Users API — CRUD Endpoints
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 
@@ -18,7 +15,6 @@ switch ($method) {
             $user = $stmt->fetch();
             if (!$user) jsonResponse(['error' => 'User not found'], 404);
             $user['role'] = getUserRole($user['user_id'], $pdo);
-            // Get role-specific data
             if ($user['role'] === 'agronomist') {
                 $s = $pdo->prepare("SELECT specialization FROM agronomist WHERE user_id = ?");
                 $s->execute([$id]); $user['specialization'] = $s->fetchColumn();

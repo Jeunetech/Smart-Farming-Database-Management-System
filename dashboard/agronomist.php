@@ -1,14 +1,11 @@
 <?php
-/**
- * Agronomist Dashboard
- */
+
 $pageTitle = 'Agronomist Dashboard';
 require_once __DIR__ . '/../includes/header.php';
 requireRole('agronomist', 'dba');
 $pdo = getDB();
 $userId = $_SESSION['user_id'];
 
-// Stats
 $analysisCount = $pdo->prepare("SELECT COUNT(*) FROM analyzes WHERE agronomist_id = ?"); $analysisCount->execute([$userId]);
 $totalAnalyses = $analysisCount->fetchColumn();
 
@@ -16,12 +13,10 @@ $dataCount = $pdo->query("SELECT COUNT(*) FROM data_table")->fetchColumn();
 $fieldCount = $pdo->query("SELECT COUNT(*) FROM field")->fetchColumn();
 $soilCount = $pdo->query("SELECT COUNT(*) FROM soil_data")->fetchColumn();
 
-// Recent analyses
 $analyses = $pdo->prepare("SELECT a.*, d.value, d.unit, d.`timestamp` as data_time, f.location as field_location FROM analyzes a JOIN data_table d ON a.data_id = d.data_id JOIN field f ON d.field_id = f.field_id WHERE a.agronomist_id = ? ORDER BY a.analyzed_at DESC LIMIT 10");
 $analyses->execute([$userId]);
 $recentAnalyses = $analyses->fetchAll();
 
-// Unanalyzed data
 $unanalyzed = $pdo->query("SELECT d.*, f.location as field_location, s.type as sensor_type FROM data_table d JOIN field f ON d.field_id = f.field_id LEFT JOIN sensor s ON d.sensor_id = s.sensor_id WHERE d.data_id NOT IN (SELECT data_id FROM analyzes) ORDER BY d.`timestamp` DESC LIMIT 10")->fetchAll();
 ?>
 

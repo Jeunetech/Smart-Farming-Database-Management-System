@@ -1,7 +1,4 @@
 <?php
-/**
- * Fields API — CRUD Endpoints
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 
@@ -17,10 +14,8 @@ switch ($method) {
             $stmt->execute([$id]);
             $field = $stmt->fetch();
             if (!$field) jsonResponse(['error' => 'Field not found'], 404);
-            // Get sensors count
             $s = $pdo->prepare("SELECT COUNT(*) FROM sensor WHERE field_id = ?"); $s->execute([$id]);
             $field['sensor_count'] = $s->fetchColumn();
-            // Get crops
             $s = $pdo->prepare("SELECT * FROM crop WHERE field_id = ?"); $s->execute([$id]);
             $field['crops'] = $s->fetchAll();
             jsonResponse($field);
@@ -33,7 +28,6 @@ switch ($method) {
                 $stmt = $pdo->query("SELECT f.*, u.name as farmer_name FROM field f JOIN `user` u ON f.farmer_id = u.user_id ORDER BY f.field_id");
             }
             $fields = $stmt->fetchAll();
-            // Add sensor counts
             foreach ($fields as &$f) {
                 $s = $pdo->prepare("SELECT COUNT(*) FROM sensor WHERE field_id = ?"); $s->execute([$f['field_id']]);
                 $f['sensor_count'] = $s->fetchColumn();

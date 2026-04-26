@@ -1,14 +1,11 @@
 <?php
-/**
- * Farmer Dashboard
- */
+
 $pageTitle = 'Farmer Dashboard';
 require_once __DIR__ . '/../includes/header.php';
 requireRole('farmer', 'dba');
 $pdo = getDB();
 $userId = $_SESSION['user_id'];
 
-// Stats
 $fieldsStmt = $pdo->prepare("SELECT COUNT(*) FROM field WHERE farmer_id = ?"); $fieldsStmt->execute([$userId]);
 $fieldCount = $fieldsStmt->fetchColumn();
 
@@ -21,22 +18,18 @@ $activeCount = $activeStmt->fetchColumn();
 $cropStmt = $pdo->prepare("SELECT COUNT(*) FROM crop c JOIN field f ON c.field_id = f.field_id WHERE f.farmer_id = ?"); $cropStmt->execute([$userId]);
 $cropCount = $cropStmt->fetchColumn();
 
-// Fields
 $fields = $pdo->prepare("SELECT * FROM field WHERE farmer_id = ? ORDER BY field_id"); $fields->execute([$userId]);
 $myFields = $fields->fetchAll();
 
-// Recent Data
 $dataStmt = $pdo->prepare("SELECT d.*, f.location as field_location, s.type as sensor_type FROM data_table d JOIN field f ON d.field_id = f.field_id LEFT JOIN sensor s ON d.sensor_id = s.sensor_id WHERE f.farmer_id = ? ORDER BY d.`timestamp` DESC LIMIT 10");
 $dataStmt->execute([$userId]);
 $recentData = $dataStmt->fetchAll();
 
-// Crops
 $cropsStmt = $pdo->prepare("SELECT c.*, f.location as field_location FROM crop c JOIN field f ON c.field_id = f.field_id WHERE f.farmer_id = ? ORDER BY c.planting_date DESC");
 $cropsStmt->execute([$userId]);
 $crops = $cropsStmt->fetchAll();
 ?>
 
-<!-- Stats -->
 <div class="stats-grid">
     <div class="stat-card cyan">
         <div class="stat-icon cyan"><i class="fas fa-map-marked-alt"></i></div>
@@ -56,7 +49,6 @@ $crops = $cropsStmt->fetchAll();
     </div>
 </div>
 
-<!-- Charts Row -->
 <div class="grid-2">
     <div class="card">
         <div class="card-header"><h3>Soil Analysis</h3></div>
@@ -68,7 +60,6 @@ $crops = $cropsStmt->fetchAll();
     </div>
 </div>
 
-<!-- Fields Table -->
 <div class="card mb-24">
     <div class="card-header">
         <h3>My Fields</h3>
@@ -94,7 +85,6 @@ $crops = $cropsStmt->fetchAll();
     </div>
 </div>
 
-<!-- Crops & Recent Data -->
 <div class="grid-2">
     <div class="card">
         <div class="card-header"><h3>Crops</h3></div>

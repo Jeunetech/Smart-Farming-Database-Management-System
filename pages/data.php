@@ -12,12 +12,10 @@ $fields = $pdo->query("SELECT field_id, location FROM field ORDER BY field_id")-
         <?php foreach($fields as $f):?><option value="<?=$f['field_id']?>"><?=htmlspecialchars($f['location'])?></option><?php endforeach;?></select>
     </div>
 </div>
-<!-- Charts -->
 <div class="grid-2 mb-24">
     <div class="card"><div class="card-header"><h3>Soil Analysis</h3></div><div class="chart-container"><canvas id="soil-chart"></canvas></div></div>
     <div class="card"><div class="card-header"><h3>Weather Overview</h3></div><div class="chart-container"><canvas id="weather-chart"></canvas></div></div>
 </div>
-<!-- Data Table -->
 <div class="card"><div class="card-header"><h3>Data Records</h3></div><div id="data-table">Loading...</div></div>
 <script>
 async function loadData(){
@@ -35,12 +33,10 @@ async function loadData(){
             {key:'field_location',label:'Field'},
             {key:'timestamp',label:'Timestamp',render:v=>App.formatDateTime(v)}
         ];
-        // Add type-specific columns
         if(type==='soil'){cols.splice(2,0,{key:'ph_level',label:'pH'},{key:'moisture',label:'Moisture %'});}
         if(type==='weather'){cols.splice(2,0,{key:'temperature',label:'Temp °C'},{key:'humidity',label:'Humidity %'},{key:'rainfall',label:'Rain mm'});}
         document.getElementById('data-table').innerHTML=CRUD.buildTable(cols,data);
     }catch(e){document.getElementById('data-table').innerHTML='<div class="empty-state"><p>Failed to load</p></div>';}
-    // Refresh charts
     const fieldId=fid||null;
     FarmCharts.renderSoilChart('soil-chart',fieldId);
     FarmCharts.renderWeatherChart('weather-chart',fieldId);

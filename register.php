@@ -1,7 +1,5 @@
 <?php
-/**
- * Registration Page — Smart Farming IoT
- */
+
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 
@@ -28,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $pdo = getDB();
-            // Check duplicate email
             $stmt = $pdo->prepare("SELECT user_id FROM `user` WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
@@ -46,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare("INSERT INTO agronomist (user_id, specialization) VALUES (?, ?)")->execute([$userId, $spec]);
                 } elseif ($role === 'technician') {
                     $spec = $specialization ?: 'General';
-                    // Default field_id=1 for new technicians
+
                     $pdo->prepare("INSERT INTO technician (user_id, specialization, field_id) VALUES (?, ?, 1)")->execute([$userId, $spec]);
                 }
                 $pdo->commit();

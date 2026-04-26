@@ -1,7 +1,4 @@
 <?php
-/**
- * Sensors API — CRUD Endpoints
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 
@@ -17,7 +14,6 @@ switch ($method) {
             $stmt->execute([$id]);
             $sensor = $stmt->fetch();
             if (!$sensor) jsonResponse(['error' => 'Sensor not found'], 404);
-            // Get recent data
             $d = $pdo->prepare("SELECT * FROM data_table WHERE sensor_id = ? ORDER BY `timestamp` DESC LIMIT 10");
             $d->execute([$id]); $sensor['recent_data'] = $d->fetchAll();
             jsonResponse($sensor);

@@ -1,8 +1,4 @@
 <?php
-/**
- * Common Header — Smart Farming IoT
- * Include this at the top of every page
- */
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/auth.php';
@@ -27,7 +23,6 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 </head>
 <body>
     <?php if (isLoggedIn()): ?>
-    <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="brand-icon">
@@ -111,9 +106,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         </div>
     </aside>
 
-    <!-- Main Content Area -->
     <main class="main-content" id="main-content">
-        <!-- Top Bar -->
         <header class="topbar">
             <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
                 <i class="fas fa-bars"></i>
@@ -126,6 +119,5 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             </div>
         </header>
 
-        <!-- Page Content Container -->
         <div class="page-content">
     <?php endif; ?>

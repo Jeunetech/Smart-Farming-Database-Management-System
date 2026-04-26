@@ -1,15 +1,10 @@
 <?php
-/**
- * Common Footer — Smart Farming IoT
- */
 ?>
-        </div><!-- /.page-content -->
-    </main><!-- /.main-content -->
+        </div>
+    </main>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- Modal Container -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal" id="modal">
             <div class="modal-header">

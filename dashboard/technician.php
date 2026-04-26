@@ -1,7 +1,5 @@
 <?php
-/**
- * Technician Dashboard
- */
+
 $pageTitle = 'Technician Dashboard';
 require_once __DIR__ . '/../includes/header.php';
 requireRole('technician', 'dba');

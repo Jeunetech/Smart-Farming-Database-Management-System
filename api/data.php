@@ -1,7 +1,5 @@
 <?php
-/**
- * Data API — CRUD for data_table + sub-tables (soil, weather, irrigation, equipment)
- */
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 
@@ -19,7 +17,6 @@ switch ($method) {
             $stmt->execute([$id]);
             $record = $stmt->fetch();
             if (!$record) jsonResponse(['error' => 'Data record not found'], 404);
-            // Attach subtype data
             foreach (['soil_data', 'weather_data', 'irrigation_data', 'equipment_data'] as $sub) {
                 $s = $pdo->prepare("SELECT * FROM `$sub` WHERE data_id = ?"); $s->execute([$id]);
                 $subData = $s->fetch();
@@ -27,7 +24,6 @@ switch ($method) {
             }
             jsonResponse($record);
         } else {
-            // List with filters
             $where = []; $params = [];
             if (!empty($_GET['field_id'])) { $where[] = "d.field_id = ?"; $params[] = $_GET['field_id']; }
             if (!empty($_GET['sensor_id'])) { $where[] = "d.sensor_id = ?"; $params[] = $_GET['sensor_id']; }

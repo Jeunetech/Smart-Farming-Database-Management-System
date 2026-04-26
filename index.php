@@ -1,11 +1,7 @@
 <?php
-/**
- * Login Page — Smart Farming IoT
- */
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 
-// Already logged in? Redirect to dashboard
 if (isLoggedIn()) {
     header('Location: ' . getDashboardUrl($_SESSION['user_role']));
     exit;
@@ -26,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email]);
             $user = $stmt->fetch();
 
-            // Plain text comparison (development mode)
             if ($user && $user['password'] === $password) {
                 $role = getUserRole($user['user_id'], $pdo);
                 loginUser($user, $role);

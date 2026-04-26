@@ -1,7 +1,4 @@
 <?php
-/**
- * Admin (DBA) Dashboard
- */
 $pageTitle = 'Admin Dashboard';
 require_once __DIR__ . '/../includes/header.php';
 requireRole('dba');
