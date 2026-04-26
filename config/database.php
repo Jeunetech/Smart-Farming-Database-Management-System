@@ -1,8 +1,5 @@
 <?php
-/**
- * Database Configuration — Smart Farming IoT
- * PDO connection to MySQL with JSON response helpers
- */
+
 
 define('DB_HOST', getenv('MYSQLHOST') ?: 'roundhouse.proxy.rlwy.net');
 define('DB_PORT', getenv('MYSQLPORT') ?: '27574');
@@ -11,9 +8,7 @@ define('DB_USER', getenv('MYSQLUSER') ?: 'root');
 define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'laLqFqcdBukRPLukVuwKRgXBtoyoKkoL');
 define('DB_CHARSET', 'utf8mb4');
 
-/**
- * Get PDO database connection
- */
+
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -34,9 +29,7 @@ function getDB(): PDO {
     return $pdo;
 }
 
-/**
- * Send JSON response with HTTP status code
- */
+
 function jsonResponse(array $data, int $status = 200): void {
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
@@ -44,9 +37,7 @@ function jsonResponse(array $data, int $status = 200): void {
     exit;
 }
 
-/**
- * Get JSON body from PUT/POST requests
- */
+
 function getJsonBody(): array {
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (stripos($contentType, 'application/json') !== false) {
@@ -62,9 +53,7 @@ function getJsonBody(): array {
     return $data;
 }
 
-/**
- * Get request method (supports method override)
- */
+
 function getMethod(): string {
     return strtoupper($_SERVER['REQUEST_METHOD']);
 }
