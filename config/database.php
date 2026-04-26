@@ -5,7 +5,7 @@ define('DB_HOST', getenv('MYSQLHOST') ?: 'roundhouse.proxy.rlwy.net');
 define('DB_PORT', getenv('MYSQLPORT') ?: '27574');
 define('DB_NAME', getenv('MYSQLDATABASE') ?: 'railway');
 define('DB_USER', getenv('MYSQLUSER') ?: 'root');
-define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'laLqFqcdBuakRPLukVuwKRgXBtoyoKkoL');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'laLqFqcdBukRPLukVuwKRgXBtoyoKkoL');
 define('DB_CHARSET', 'utf8mb4');
 
 
