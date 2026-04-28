@@ -18,9 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $pdo  = getDB();
-            $stmt = $pdo->prepare("SELECT * FROM `user` WHERE email = ?");
+            $stmt = $pdo->prepare("CALL GetUserByEmail(?)");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
+            $stmt->closeCursor();
 
             if ($user && $user['password'] === $password) {
                 $role = getUserRole($user['user_id'], $pdo);

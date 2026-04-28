@@ -5,7 +5,9 @@ requireLogin();
 $pdo = getDB();
 $role = $_SESSION['user_role'];
 $userId = $_SESSION['user_id'];
-$farmers = $pdo->query("SELECT f.user_id, u.name FROM farmer f JOIN `user` u ON f.user_id = u.user_id")->fetchAll();
+$stmt = $pdo->query("CALL GetFarmers()");
+$farmers = $stmt->fetchAll();
+$stmt->closeCursor();
 ?>
 <div class="action-bar">
     <div class="filter-group">

@@ -4,7 +4,9 @@ require_once __DIR__ . '/../includes/header.php';
 requireLogin();
 $pdo = getDB();
 $role = $_SESSION['user_role'];
-$fields = $pdo->query("SELECT field_id, location FROM field ORDER BY field_id")->fetchAll();
+$stmt = $pdo->query("CALL GetAllFields()");
+$fields = $stmt->fetchAll();
+$stmt->closeCursor();
 ?>
 <div class="action-bar">
     <div class="filter-group">
