@@ -78,14 +78,49 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             </div>
             <?php endif; ?>
 
-            <?php if ($currentRole === 'dba'): ?>
+            <?php if ($currentRole === 'dba'): 
+                $pdo = getDB();
+                $stmtFields = $pdo->query("CALL GetAllFields()");
+                $allFieldsForWeather = $stmtFields->fetchAll();
+                $stmtFields->closeCursor();
+            ?>
             <div class="nav-section">
                 <span class="nav-section-title">Administration</span>
                 <a href="/pages/users.php" class="nav-link <?= $currentPage === 'users' ? 'active' : '' ?>" id="nav-users">
                     <i class="fas fa-users-cog"></i>
                     <span>Users</span>
                 </a>
+                <a href="javascript:void(0)" class="nav-link" id="nav-add-weather" onclick="openAddWeatherData()">
+                    <i class="fas fa-cloud-sun"></i>
+                    <span>Add Weather Data</span>
+                </a>
             </div>
+            <script>
+            const globalFieldsForWeather = <?=json_encode($allFieldsForWeather)?>;
+            const weatherFormFields = [
+                {name: 'type', type: 'hidden'},
+                {name: 'unit', type: 'hidden'},
+                {name: 'field_id', label: 'Field', type: 'select', options: globalFieldsForWeather.map(f => ({value: f.field_id, label: f.location})), required: true},
+                {name: 'temperature', label: 'Temperature (°C)', type: 'number', step: '0.1', required: true},
+                {name: 'humidity', label: 'Humidity (%)', type: 'number', step: '0.1', required: true},
+                {name: 'rainfall', label: 'Rainfall (mm)', type: 'number', step: '0.1', required: true},
+                {name: 'wind_speed', label: 'Wind Speed (km/h)', type: 'number', step: '0.1', required: true}
+            ];
+
+            function openAddWeatherData() {
+                CRUD.openFormModal('Add Weather Data', weatherFormFields, {type: 'weather', unit: 'Celsius'}, async (d) => {
+                    try {
+                        d.value = d.temperature;
+                        await App.api('data.php', { method: 'POST', body: d });
+                        Toast.success('Weather data added successfully');
+                        Modal.close();
+                        setTimeout(() => window.location.reload(), 1000);
+                    } catch (e) {
+                        console.error(e);
+                    }
+                });
+            }
+            </script>
             <?php endif; ?>
         </nav>
 
