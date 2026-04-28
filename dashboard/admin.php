@@ -4,15 +4,16 @@ require_once __DIR__ . '/../includes/header.php';
 requireRole('dba');
 $pdo = getDB();
 
-$userCount = $pdo->query("SELECT COUNT(*) FROM `user`")->fetchColumn();
-$fieldCount = $pdo->query("SELECT COUNT(*) FROM field")->fetchColumn();
-$sensorCount = $pdo->query("SELECT COUNT(*) FROM sensor")->fetchColumn();
-$dataCount = $pdo->query("SELECT COUNT(*) FROM data_table")->fetchColumn();
+$stats = $pdo->query("SELECT * FROM v_dashboard_stats")->fetch();
+$userCount = $stats['user_count'];
+$fieldCount = $stats['field_count'];
+$sensorCount = $stats['sensor_count'];
+$dataCount = $stats['data_count'];
 
-$users = $pdo->query("SELECT user_id, name, email, permissions_level, experience_level FROM `user` ORDER BY user_id")->fetchAll();
+$users = $pdo->query("SELECT * FROM v_admin_users ORDER BY user_id")->fetchAll();
 foreach ($users as &$u) { $u['role'] = getUserRole($u['user_id'], $pdo); }
 
-$recentData = $pdo->query("SELECT d.*, f.location as field_location FROM data_table d JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 8")->fetchAll();
+$recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC LIMIT 8")->fetchAll();
 ?>
 <div class="stats-grid">
     <div class="stat-card cyan"><div class="stat-icon cyan"><i class="fas fa-users"></i></div><div class="stat-info"><span class="stat-value"><?=$userCount?></span><span class="stat-label">Users</span></div></div>
