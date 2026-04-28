@@ -8,7 +8,9 @@ $fields = $stmt->fetchAll();
 $stmt->closeCursor();
 ?>
 <div class="action-bar">
-    <div></div>
+    <div class="filter-group">
+        <input type="text" id="search-user" class="form-control" placeholder="Search users..." onkeyup="loadUsers()">
+    </div>
     <button class="btn btn-primary" onclick="openCreateUser()"><i class="fas fa-plus"></i> Add User</button>
 </div>
 <div class="card"><div id="users-table">Loading...</div></div>
@@ -25,8 +27,16 @@ const userFormFields=[
     {name:'experience_level',label:'Experience',type:'select',options:['beginner','intermediate','expert'],default:'beginner'}
 ];
 async function loadUsers(){
+    const searchVal=document.getElementById('search-user').value.toLowerCase();
     try{
-        const data=await App.api('users.php');
+        let data=await App.api('users.php');
+        if(searchVal) {
+            data = data.filter(r => 
+                (r.name && r.name.toLowerCase().includes(searchVal)) || 
+                (r.email && r.email.toLowerCase().includes(searchVal)) ||
+                (r.role && r.role.toLowerCase().includes(searchVal))
+            );
+        }
         const cols=[
             {key:'user_id',label:'ID',render:v=>'#'+v},
             {key:'name',label:'Name',render:v=>`<span style="color:var(--text-primary);font-weight:500">${v}</span>`},

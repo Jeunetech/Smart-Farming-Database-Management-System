@@ -11,6 +11,7 @@ $stmt->closeCursor();
 ?>
 <div class="action-bar">
     <div class="filter-group">
+        <input type="text" id="search-field" class="form-control" placeholder="Search fields..." onkeyup="loadFields()">
         <select class="form-control" id="filter-farmer" onchange="loadFields()">
             <option value="">All Farmers</option>
             <?php foreach($farmers as $f):?><option value="<?=$f['user_id']?>"><?=htmlspecialchars($f['name'])?></option><?php endforeach;?>
@@ -32,9 +33,17 @@ const fieldFormFields = [
 ];
 async function loadFields(){
     const fid=document.getElementById('filter-farmer').value;
+    const searchVal=document.getElementById('search-field').value.toLowerCase();
     const url=fid?'fields.php?farmer_id='+fid:'fields.php';
     try{
-        const data=await App.api(url);
+        let data=await App.api(url);
+        if(searchVal) {
+            data = data.filter(r => 
+                (r.location && r.location.toLowerCase().includes(searchVal)) || 
+                (r.irrigation_type && r.irrigation_type.toLowerCase().includes(searchVal)) ||
+                (r.farmer_name && r.farmer_name.toLowerCase().includes(searchVal))
+            );
+        }
         const cols=[
             {key:'field_id',label:'ID',render:v=>'#'+v},
             {key:'location',label:'Location',render:(v)=>`<span style="color:var(--text-primary);font-weight:500">${v}</span>`},

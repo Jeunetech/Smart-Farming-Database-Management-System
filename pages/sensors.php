@@ -10,6 +10,7 @@ $stmt->closeCursor();
 ?>
 <div class="action-bar">
     <div class="filter-group">
+        <input type="text" id="search-sensor" class="form-control" placeholder="Search sensors..." onkeyup="loadSensors()">
         <select class="form-control" id="filter-field" onchange="loadSensors()"><option value="">All Fields</option>
         <?php foreach($fields as $f):?><option value="<?=$f['field_id']?>"><?=htmlspecialchars($f['location'])?></option><?php endforeach;?></select>
         <select class="form-control" id="filter-status" onchange="loadSensors()"><option value="">All Status</option><option value="active">Active</option><option value="maintenance">Maintenance</option><option value="inactive">Inactive</option></select>
@@ -33,10 +34,18 @@ async function loadSensors(){
     let url='sensors.php?';
     const fid=document.getElementById('filter-field').value;
     const st=document.getElementById('filter-status').value;
+    const searchVal=document.getElementById('search-sensor').value.toLowerCase();
     if(fid)url+='field_id='+fid+'&';
     if(st)url+='status='+st;
     try{
-        const data=await App.api(url);
+        let data=await App.api(url);
+        if(searchVal) {
+            data = data.filter(r => 
+                (r.type && r.type.toLowerCase().includes(searchVal)) || 
+                (r.field_location && r.field_location.toLowerCase().includes(searchVal)) ||
+                (r.status && r.status.toLowerCase().includes(searchVal))
+            );
+        }
         const cols=[
             {key:'sensor_id',label:'ID',render:v=>'#'+v},
             {key:'type',label:'Type',render:v=>`<span style="color:var(--text-primary);font-weight:500">${v}</span>`},

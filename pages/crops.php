@@ -10,6 +10,7 @@ $stmt->closeCursor();
 ?>
 <div class="action-bar">
     <div class="filter-group">
+        <input type="text" id="search-crop" class="form-control" placeholder="Search crops..." onkeyup="loadCrops()">
         <select class="form-control" id="filter-field" onchange="loadCrops()"><option value="">All Fields</option>
         <?php foreach($fields as $f):?><option value="<?=$f['field_id']?>"><?=htmlspecialchars($f['location'])?></option><?php endforeach;?></select>
     </div>
@@ -30,9 +31,16 @@ const cropFormFields=[
 ];
 async function loadCrops(){
     const fid=document.getElementById('filter-field').value;
+    const searchVal=document.getElementById('search-crop').value.toLowerCase();
     const url=fid?'crops.php?field_id='+fid:'crops.php';
     try{
-        const data=await App.api(url);
+        let data=await App.api(url);
+        if(searchVal) {
+            data = data.filter(r => 
+                (r.name && r.name.toLowerCase().includes(searchVal)) || 
+                (r.field_location && r.field_location.toLowerCase().includes(searchVal))
+            );
+        }
         const cols=[
             {key:'crop_id',label:'ID',render:v=>'#'+v},
             {key:'name',label:'Crop',render:v=>`<span style="color:var(--text-primary);font-weight:500">${v}</span>`},
