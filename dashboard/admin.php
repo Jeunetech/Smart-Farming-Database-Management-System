@@ -33,12 +33,20 @@ $recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC
     <?php endforeach;?></tbody></table></div>
 </div>
 <div class="card mb-24">
-    <div class="card-header"><h3>Recent Activity</h3></div>
+    <div class="card-header">
+        <h3>Recent Activity</h3>
+        <button class="btn btn-sm btn-primary" onclick="openAddWeatherData()"><i class="fas fa-cloud-sun"></i> Add Weather Data</button>
+    </div>
     <div class="table-wrapper"><table><thead><tr><th>Data ID</th><th>Value</th><th>Field</th><th>Timestamp</th></tr></thead><tbody>
     <?php foreach($recentData as $d):?>
     <tr><td>#<?=$d['data_id']?></td><td style="color:var(--text-primary)"><?=$d['value']?> <?=htmlspecialchars($d['unit'])?></td><td><?=htmlspecialchars($d['field_location'])?></td><td style="font-size:12px"><?=$d['timestamp']?></td></tr>
     <?php endforeach;?></tbody></table></div>
 </div>
+<?php
+$stmtFields = $pdo->query("CALL GetAllFields()");
+$allFields = $stmtFields->fetchAll();
+$stmtFields->closeCursor();
+?>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{FarmCharts.renderSoilChart('soil-chart');FarmCharts.renderWeatherChart('weather-chart');});
 </script>
