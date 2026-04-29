@@ -115,6 +115,24 @@ const FarmCharts = {
         });
     },
 
+    /** Generic Pie/Doughnut Chart */
+    renderPieChart(canvasId, labels, dataCounts, colors, isDoughnut = true) {
+        this.destroy(canvasId);
+        const bgColors = labels.map((l, i) => colors[l] || colors[i % colors.length] || CHART_COLORS.blue);
+        this.instances[canvasId] = new Chart(document.getElementById(canvasId), {
+            type: isDoughnut ? 'doughnut' : 'pie', 
+            data: { 
+                labels: labels.map(l => typeof l === 'string' ? l.charAt(0).toUpperCase() + l.slice(1) : l), 
+                datasets: [{ data: dataCounts, backgroundColor: bgColors, borderColor: 'transparent', borderWidth: 0, spacing: 3 }] 
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                cutout: isDoughnut ? '65%' : '0%', 
+                plugins: { legend: CHART_DEFAULTS.plugins.legend, tooltip: CHART_DEFAULTS.plugins.tooltip } 
+            }
+        });
+    },
+
     /** Generic Line Chart */
     renderLineChart(canvasId, labels, datasets) {
         this.destroy(canvasId);

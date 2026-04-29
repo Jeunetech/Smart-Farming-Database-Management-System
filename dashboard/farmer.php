@@ -28,6 +28,30 @@ $recentData = $dataStmt->fetchAll();
 $cropsStmt = $pdo->prepare("SELECT c.*, f.location as field_location FROM crop c JOIN field f ON c.field_id = f.field_id WHERE f.farmer_id = ? ORDER BY c.planting_date DESC");
 $cropsStmt->execute([$userId]);
 $crops = $cropsStmt->fetchAll();
+
+$soilDataStmt = $pdo->prepare("SELECT d.*, sd.ph_level, sd.moisture, sd.nutrient_levels, sd.sample_date, f.location as field_location FROM data_table d INNER JOIN soil_data sd ON d.data_id = sd.data_id JOIN field f ON d.field_id = f.field_id WHERE f.farmer_id = ? ORDER BY d.`timestamp` DESC LIMIT 50");
+$soilDataStmt->execute([$userId]);
+$soilData = $soilDataStmt->fetchAll();
+
+$weatherDataStmt = $pdo->prepare("SELECT d.*, wd.temperature, wd.humidity, wd.rainfall, wd.wind_speed, f.location as field_location FROM data_table d INNER JOIN weather_data wd ON d.data_id = wd.data_id JOIN field f ON d.field_id = f.field_id WHERE f.farmer_id = ? ORDER BY d.`timestamp` DESC LIMIT 50");
+$weatherDataStmt->execute([$userId]);
+$weatherData = $weatherDataStmt->fetchAll();
+
+$dtStmt = $pdo->prepare("
+    SELECT 
+        (SELECT COUNT(*) FROM soil_data sd JOIN data_table d ON sd.data_id = d.data_id JOIN field f ON d.field_id = f.field_id WHERE f.farmer_id = ?) as Soil,
+        (SELECT COUNT(*) FROM weather_data wd JOIN data_table d ON wd.data_id = d.data_id JOIN field f ON d.field_id = f.field_id WHERE f.farmer_id = ?) as Weather,
+        (SELECT COUNT(*) FROM irrigation_data id JOIN data_table d ON id.data_id = d.data_id JOIN field f ON d.field_id = f.field_id WHERE f.farmer_id = ?) as Irrigation,
+        (SELECT COUNT(*) FROM equipment_data ed JOIN data_table d ON ed.data_id = d.data_id JOIN field f ON d.field_id = f.field_id WHERE f.farmer_id = ?) as Equipment
+");
+$dtStmt->execute([$userId, $userId, $userId, $userId]);
+$dataTypeCounts = $dtStmt->fetch(PDO::FETCH_ASSOC);
+
+$statusStmt = $pdo->prepare("SELECT s.status, COUNT(*) as count FROM sensor s JOIN field f ON s.field_id = f.field_id WHERE f.farmer_id = ? GROUP BY s.status");
+$statusStmt->execute([$userId]);
+$sensorStatusRows = $statusStmt->fetchAll();
+$sensorStatusCounts = [];
+foreach ($sensorStatusRows as $row) { $sensorStatusCounts[ucfirst($row['status'])] = (int)$row['count']; }
 ?>
 
 <div class="stats-grid">
@@ -49,7 +73,7 @@ $crops = $cropsStmt->fetchAll();
     </div>
 </div>
 
-<div class="grid-2">
+<div class="grid-2 mb-24">
     <div class="card">
         <div class="card-header"><h3>Soil Analysis</h3></div>
         <div class="chart-container"><canvas id="soil-chart"></canvas></div>
@@ -58,6 +82,11 @@ $crops = $cropsStmt->fetchAll();
         <div class="card-header"><h3>Weather Overview</h3></div>
         <div class="chart-container"><canvas id="weather-chart"></canvas></div>
     </div>
+</div>
+
+<div class="grid-2 mb-24">
+    <div class="card"><div class="card-header"><h3>Data Records by Type</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="data-type-chart"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Sensor Status Distribution</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="sensor-status-chart"></canvas></div></div>
 </div>
 
 <div class="card mb-24">
@@ -127,9 +156,30 @@ $crops = $cropsStmt->fetchAll();
 </div>
 
 <script>
+const inlineSoilData = <?=json_encode($soilData)?>;
+const inlineWeatherData = <?=json_encode($weatherData)?>;
+const dataTypeLabels = <?=json_encode(array_keys($dataTypeCounts))?>;
+const dataTypeValues = <?=json_encode(array_values($dataTypeCounts))?>;
+const sensorStatusLabels = <?=json_encode(array_keys($sensorStatusCounts))?>;
+const sensorStatusValues = <?=json_encode(array_values($sensorStatusCounts))?>;
+
 document.addEventListener('DOMContentLoaded', () => {
-    FarmCharts.renderSoilChart('soil-chart');
-    FarmCharts.renderWeatherChart('weather-chart');
+    FarmCharts.renderSoilChart('soil-chart', null, inlineSoilData);
+    FarmCharts.renderWeatherChart('weather-chart', null, inlineWeatherData);
+    
+    FarmCharts.renderPieChart('data-type-chart', dataTypeLabels, dataTypeValues, {
+        'Soil': CHART_COLORS.amber,
+        'Weather': CHART_COLORS.blue,
+        'Irrigation': CHART_COLORS.cyan,
+        'Equipment': CHART_COLORS.violet
+    }, false);
+    
+    FarmCharts.renderPieChart('sensor-status-chart', sensorStatusLabels, sensorStatusValues, {
+        'Active': CHART_COLORS.emerald,
+        'Maintenance': CHART_COLORS.amber,
+        'Inactive': CHART_COLORS.red,
+        'Broken': CHART_COLORS.red
+    }, true);
 });
 </script>
 

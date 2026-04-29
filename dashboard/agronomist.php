@@ -18,6 +18,20 @@ $analyses->execute([$userId]);
 $recentAnalyses = $analyses->fetchAll();
 
 $unanalyzed = $pdo->query("SELECT d.*, f.location as field_location, s.type as sensor_type FROM data_table d JOIN field f ON d.field_id = f.field_id LEFT JOIN sensor s ON d.sensor_id = s.sensor_id WHERE d.data_id NOT IN (SELECT data_id FROM analyzes) ORDER BY d.`timestamp` DESC LIMIT 10")->fetchAll();
+
+$soilData = $pdo->query("SELECT d.*, sd.ph_level, sd.moisture, sd.nutrient_levels, sd.sample_date, f.location as field_location FROM data_table d INNER JOIN soil_data sd ON d.data_id = sd.data_id JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 50")->fetchAll();
+$weatherData = $pdo->query("SELECT d.*, wd.temperature, wd.humidity, wd.rainfall, wd.wind_speed, f.location as field_location FROM data_table d INNER JOIN weather_data wd ON d.data_id = wd.data_id JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 50")->fetchAll();
+
+$dataTypeCounts = [
+    'Soil' => (int)$pdo->query("SELECT COUNT(*) FROM soil_data")->fetchColumn(),
+    'Weather' => (int)$pdo->query("SELECT COUNT(*) FROM weather_data")->fetchColumn(),
+    'Irrigation' => (int)$pdo->query("SELECT COUNT(*) FROM irrigation_data")->fetchColumn(),
+    'Equipment' => (int)$pdo->query("SELECT COUNT(*) FROM equipment_data")->fetchColumn()
+];
+
+$sensorStatusRows = $pdo->query("SELECT status, COUNT(*) as count FROM sensor GROUP BY status")->fetchAll();
+$sensorStatusCounts = [];
+foreach ($sensorStatusRows as $row) { $sensorStatusCounts[ucfirst($row['status'])] = (int)$row['count']; }
 ?>
 
 <div class="stats-grid">
@@ -39,7 +53,7 @@ $unanalyzed = $pdo->query("SELECT d.*, f.location as field_location, s.type as s
     </div>
 </div>
 
-<div class="grid-2">
+<div class="grid-2 mb-24">
     <div class="card">
         <div class="card-header"><h3>Soil Analysis Trends</h3></div>
         <div class="chart-container"><canvas id="soil-chart"></canvas></div>
@@ -48,6 +62,11 @@ $unanalyzed = $pdo->query("SELECT d.*, f.location as field_location, s.type as s
         <div class="card-header"><h3>Weather Trends</h3></div>
         <div class="chart-container"><canvas id="weather-chart"></canvas></div>
     </div>
+</div>
+
+<div class="grid-2 mb-24">
+    <div class="card"><div class="card-header"><h3>Data Records by Type</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="data-type-chart"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Sensor Status Distribution</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="sensor-status-chart"></canvas></div></div>
 </div>
 
 <div class="grid-2">
@@ -91,9 +110,30 @@ $unanalyzed = $pdo->query("SELECT d.*, f.location as field_location, s.type as s
 </div>
 
 <script>
+const inlineSoilData = <?=json_encode($soilData)?>;
+const inlineWeatherData = <?=json_encode($weatherData)?>;
+const dataTypeLabels = <?=json_encode(array_keys($dataTypeCounts))?>;
+const dataTypeValues = <?=json_encode(array_values($dataTypeCounts))?>;
+const sensorStatusLabels = <?=json_encode(array_keys($sensorStatusCounts))?>;
+const sensorStatusValues = <?=json_encode(array_values($sensorStatusCounts))?>;
+
 document.addEventListener('DOMContentLoaded', () => {
-    FarmCharts.renderSoilChart('soil-chart');
-    FarmCharts.renderWeatherChart('weather-chart');
+    FarmCharts.renderSoilChart('soil-chart', null, inlineSoilData);
+    FarmCharts.renderWeatherChart('weather-chart', null, inlineWeatherData);
+    
+    FarmCharts.renderPieChart('data-type-chart', dataTypeLabels, dataTypeValues, {
+        'Soil': CHART_COLORS.amber,
+        'Weather': CHART_COLORS.blue,
+        'Irrigation': CHART_COLORS.cyan,
+        'Equipment': CHART_COLORS.violet
+    }, false);
+    
+    FarmCharts.renderPieChart('sensor-status-chart', sensorStatusLabels, sensorStatusValues, {
+        'Active': CHART_COLORS.emerald,
+        'Maintenance': CHART_COLORS.amber,
+        'Inactive': CHART_COLORS.red,
+        'Broken': CHART_COLORS.red
+    }, true);
 });
 async function analyzeData(dataId) {
     try {

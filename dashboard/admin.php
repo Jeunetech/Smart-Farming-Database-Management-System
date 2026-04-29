@@ -21,7 +21,13 @@ foreach ($users as $k => $v) { $users[$k]['role'] = $allRoles[$v['user_id']] ?? 
 $totalUsers = $pdo->query("SELECT COUNT(*) FROM `user`")->fetchColumn();
 $totalPages = ceil($totalUsers / $limit);
 
-$recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC LIMIT 8")->fetchAll();
+$actPage = isset($_GET['act_page']) ? max(1, (int)$_GET['act_page']) : 1;
+$actLimit = 5;
+$actOffset = ($actPage - 1) * $actLimit;
+
+$recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC, data_id DESC LIMIT $actLimit OFFSET $actOffset")->fetchAll();
+$totalAct = $pdo->query("SELECT COUNT(*) FROM v_recent_data")->fetchColumn();
+$totalActPages = ceil($totalAct / $actLimit);
 ?>
 <div class="stats-grid">
     <div class="stat-card cyan"><div class="stat-icon cyan"><i class="fas fa-users"></i></div><div class="stat-info"><span class="stat-value"><?=$userCount?></span><span class="stat-label">Users</span></div></div>
@@ -33,6 +39,10 @@ $recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC
     <div class="card"><div class="card-header"><h3>Soil Trends</h3></div><div class="chart-container"><canvas id="soil-chart"></canvas></div></div>
     <div class="card"><div class="card-header"><h3>Weather Trends</h3></div><div class="chart-container"><canvas id="weather-chart"></canvas></div></div>
 </div>
+<div class="grid-2 mb-24" style="margin-top: 24px;">
+    <div class="card"><div class="card-header"><h3>Data Records by Type</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="data-type-chart"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Sensor Status Distribution</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="sensor-status-chart"></canvas></div></div>
+</div>
 <div class="card mb-24">
     <div class="card-header"><h3>User Management</h3><a href="/pages/users.php" class="btn btn-sm btn-primary"><i class="fas fa-users-cog"></i> Manage All</a></div>
     <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Permissions</th></tr></thead><tbody>
@@ -43,28 +53,18 @@ $recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC
     <?php if($totalPages > 1): ?>
     <div style="padding: 1rem; display: flex; gap: 0.5rem; justify-content: center; align-items: center; border-top: 1px solid var(--border-color);">
         <?php if($page > 1): ?>
-            <a href="?page=<?= $page - 1 ?>" class="btn btn-sm btn-secondary"><i class="fas fa-chevron-left"></i> Prev</a>
+            <a href="?page=<?= $page - 1 ?>&act_page=<?= $actPage ?>" class="btn btn-sm btn-secondary"><i class="fas fa-chevron-left"></i> Prev</a>
         <?php endif; ?>
         
         <?php for($i = 1; $i <= $totalPages; $i++): ?>
-            <a href="?page=<?= $i ?>" class="btn btn-sm <?= $i === $page ? 'btn-primary' : 'btn-secondary' ?>"><?= $i ?></a>
+            <a href="?page=<?= $i ?>&act_page=<?= $actPage ?>" class="btn btn-sm <?= $i === $page ? 'btn-primary' : 'btn-secondary' ?>"><?= $i ?></a>
         <?php endfor; ?>
         
         <?php if($page < $totalPages): ?>
-            <a href="?page=<?= $page + 1 ?>" class="btn btn-sm btn-secondary">Next <i class="fas fa-chevron-right"></i></a>
+            <a href="?page=<?= $page + 1 ?>&act_page=<?= $actPage ?>" class="btn btn-sm btn-secondary">Next <i class="fas fa-chevron-right"></i></a>
         <?php endif; ?>
     </div>
     <?php endif; ?>
-</div>
-<div class="card mb-24">
-    <div class="card-header">
-        <h3>Recent Activity</h3>
-        <button class="btn btn-sm btn-primary" onclick="openAddWeatherData()"><i class="fas fa-cloud-sun"></i> Add Weather Data</button>
-    </div>
-    <div class="table-wrapper"><table><thead><tr><th>Data ID</th><th>Value</th><th>Field</th><th>Timestamp</th></tr></thead><tbody>
-    <?php foreach($recentData as $d):?>
-    <tr><td>#<?=$d['data_id']?></td><td style="color:var(--text-primary)"><?=$d['value']?> <?=htmlspecialchars($d['unit'])?></td><td><?=htmlspecialchars($d['field_location'])?></td><td style="font-size:12px"><?=$d['timestamp']?></td></tr>
-    <?php endforeach;?></tbody></table></div>
 </div>
 <?php
 $stmtFields = $pdo->query("CALL GetAllFields()");
@@ -73,13 +73,47 @@ $stmtFields->closeCursor();
 
 $soilData = $pdo->query("SELECT d.*, sd.ph_level, sd.moisture, sd.nutrient_levels, sd.sample_date, f.location as field_location FROM data_table d INNER JOIN soil_data sd ON d.data_id = sd.data_id JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 50")->fetchAll();
 $weatherData = $pdo->query("SELECT d.*, wd.temperature, wd.humidity, wd.rainfall, wd.wind_speed, f.location as field_location FROM data_table d INNER JOIN weather_data wd ON d.data_id = wd.data_id JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 50")->fetchAll();
+
+$dataTypeCounts = [
+    'Soil' => (int)$pdo->query("SELECT COUNT(*) FROM soil_data")->fetchColumn(),
+    'Weather' => (int)$pdo->query("SELECT COUNT(*) FROM weather_data")->fetchColumn(),
+    'Irrigation' => (int)$pdo->query("SELECT COUNT(*) FROM irrigation_data")->fetchColumn(),
+    'Equipment' => (int)$pdo->query("SELECT COUNT(*) FROM equipment_data")->fetchColumn()
+];
+
+$sensorStatusRows = $pdo->query("SELECT status, COUNT(*) as count FROM sensor GROUP BY status")->fetchAll();
+$sensorStatusCounts = [];
+foreach ($sensorStatusRows as $row) {
+    $sensorStatusCounts[ucfirst($row['status'])] = (int)$row['count'];
+}
 ?>
 <script>
 const inlineSoilData = <?=json_encode($soilData)?>;
 const inlineWeatherData = <?=json_encode($weatherData)?>;
+const dataTypeLabels = <?=json_encode(array_keys($dataTypeCounts))?>;
+const dataTypeValues = <?=json_encode(array_values($dataTypeCounts))?>;
+const sensorStatusLabels = <?=json_encode(array_keys($sensorStatusCounts))?>;
+const sensorStatusValues = <?=json_encode(array_values($sensorStatusCounts))?>;
+
 document.addEventListener('DOMContentLoaded', () => {
     FarmCharts.renderSoilChart('soil-chart', null, inlineSoilData);
     FarmCharts.renderWeatherChart('weather-chart', null, inlineWeatherData);
+    
+    // Data Types Pie Chart
+    FarmCharts.renderPieChart('data-type-chart', dataTypeLabels, dataTypeValues, {
+        'Soil': CHART_COLORS.amber,
+        'Weather': CHART_COLORS.blue,
+        'Irrigation': CHART_COLORS.cyan,
+        'Equipment': CHART_COLORS.violet
+    }, false); // false = Pie Chart
+    
+    // Sensor Status Doughnut Chart
+    FarmCharts.renderPieChart('sensor-status-chart', sensorStatusLabels, sensorStatusValues, {
+        'Active': CHART_COLORS.emerald,
+        'Maintenance': CHART_COLORS.amber,
+        'Inactive': CHART_COLORS.red,
+        'Broken': CHART_COLORS.red
+    }, true); // true = Doughnut Chart
 });
 </script>
 <?php require_once __DIR__.'/../includes/footer.php';?>

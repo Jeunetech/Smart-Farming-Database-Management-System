@@ -19,7 +19,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css?v=<?= time() ?>">
 </head>
 <body>
     <?php if (isLoggedIn()): ?>
@@ -61,10 +61,12 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <i class="fas fa-microchip"></i>
                     <span>Sensors</span>
                 </a>
+                <?php if (in_array($currentRole, ['farmer', 'technician'])): ?>
                 <a href="/pages/data.php" class="nav-link <?= $currentPage === 'data' ? 'active' : '' ?>" id="nav-data">
                     <i class="fas fa-database"></i>
                     <span>Sensor Data</span>
                 </a>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
 
@@ -90,10 +92,30 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <i class="fas fa-users-cog"></i>
                     <span>Users</span>
                 </a>
-                <a href="javascript:void(0)" class="nav-link" id="nav-add-weather" onclick="openAddWeatherData()">
-                    <i class="fas fa-cloud-sun"></i>
-                    <span>Add Weather Data</span>
-                </a>
+                <div class="nav-dropdown">
+                    <a href="javascript:void(0)" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Data <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: auto;"></i></span>
+                    </a>
+                    <div class="nav-dropdown-menu">
+                        <a href="javascript:void(0)" class="nav-link" onclick="openAddWeatherData()">
+                            <i class="fas fa-cloud-sun"></i>
+                            <span>Weather Data</span>
+                        </a>
+                        <a href="javascript:void(0)" class="nav-link" onclick="openAddSoilData()">
+                            <i class="fas fa-seedling"></i>
+                            <span>Soil Data</span>
+                        </a>
+                        <a href="javascript:void(0)" class="nav-link" onclick="openAddIrrigationData()">
+                            <i class="fas fa-water"></i>
+                            <span>Irrigation Data</span>
+                        </a>
+                        <a href="javascript:void(0)" class="nav-link" onclick="openAddEquipmentData()">
+                            <i class="fas fa-tractor"></i>
+                            <span>Equipment Data</span>
+                        </a>
+                    </div>
+                </div>
             </div>
             <script>
             const globalFieldsForWeather = <?=json_encode($allFieldsForWeather)?>;
@@ -118,6 +140,71 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     } catch (e) {
                         console.error(e);
                     }
+                });
+            }
+
+            const soilFormFields = [
+                {name: 'type', type: 'hidden'},
+                {name: 'unit', type: 'hidden'},
+                {name: 'field_id', label: 'Field', type: 'select', options: globalFieldsForWeather.map(f => ({value: f.field_id, label: f.location})), required: true},
+                {name: 'ph_level', label: 'pH Level', type: 'number', step: '0.1', required: true},
+                {name: 'moisture', label: 'Moisture (%)', type: 'number', step: '0.1', required: true},
+                {name: 'nutrient_levels', label: 'Nutrient Levels', type: 'text', required: true},
+                {name: 'sample_date', label: 'Sample Date', type: 'date', required: true, default: new Date().toISOString().split('T')[0]}
+            ];
+
+            function openAddSoilData() {
+                CRUD.openFormModal('Add Soil Data', soilFormFields, {type: 'soil', unit: 'pH'}, async (d) => {
+                    try {
+                        d.value = d.ph_level;
+                        await App.api('data.php', { method: 'POST', body: d });
+                        Toast.success('Soil data added successfully');
+                        Modal.close();
+                        setTimeout(() => window.location.reload(), 1000);
+                    } catch (e) { console.error(e); }
+                });
+            }
+
+            const irrigationFormFields = [
+                {name: 'type', type: 'hidden'},
+                {name: 'unit', type: 'hidden'},
+                {name: 'field_id', label: 'Field', type: 'select', options: globalFieldsForWeather.map(f => ({value: f.field_id, label: f.location})), required: true},
+                {name: 'water_amount', label: 'Water Amount (Liters)', type: 'number', step: '0.1', required: true},
+                {name: 'irrigation_type', label: 'Irrigation Type', type: 'select', options: ['drip', 'sprinkler', 'flood'], required: true},
+                {name: 'duration', label: 'Duration (Minutes)', type: 'number', required: true}
+            ];
+
+            function openAddIrrigationData() {
+                CRUD.openFormModal('Add Irrigation Data', irrigationFormFields, {type: 'irrigation', unit: 'liters'}, async (d) => {
+                    try {
+                        d.value = d.water_amount;
+                        await App.api('data.php', { method: 'POST', body: d });
+                        Toast.success('Irrigation data added successfully');
+                        Modal.close();
+                        setTimeout(() => window.location.reload(), 1000);
+                    } catch (e) { console.error(e); }
+                });
+            }
+
+            const equipmentFormFields = [
+                {name: 'type', type: 'hidden'},
+                {name: 'unit', type: 'hidden'},
+                {name: 'field_id', label: 'Field', type: 'select', options: globalFieldsForWeather.map(f => ({value: f.field_id, label: f.location})), required: true},
+                {name: 'equip_type', label: 'Equipment Type (e.g. Tractor)', type: 'text', required: true},
+                {name: 'usage_hours', label: 'Usage Hours', type: 'number', step: '0.1', required: true},
+                {name: 'maintenance_date', label: 'Maintenance Date', type: 'date', required: false},
+                {name: 'equip_status', label: 'Status', type: 'select', options: ['operational', 'maintenance', 'broken'], required: true, default: 'operational'}
+            ];
+
+            function openAddEquipmentData() {
+                CRUD.openFormModal('Add Equipment Data', equipmentFormFields, {type: 'equipment', unit: 'hours'}, async (d) => {
+                    try {
+                        d.value = d.usage_hours;
+                        await App.api('data.php', { method: 'POST', body: d });
+                        Toast.success('Equipment data added successfully');
+                        Modal.close();
+                        setTimeout(() => window.location.reload(), 1000);
+                    } catch (e) { console.error(e); }
                 });
             }
             </script>

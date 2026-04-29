@@ -16,8 +16,8 @@
         </div>
     </div>
 
-    <script src="/assets/js/app.js"></script>
-    <script src="/assets/js/charts.js"></script>
-    <script src="/assets/js/crud.js"></script>
+    <script src="/assets/js/app.js?v=<?=time()?>"></script>
+    <script src="/assets/js/charts.js?v=<?=time()?>"></script>
+    <script src="/assets/js/crud.js?v=<?=time()?>"></script>
 </body>
 </html>

@@ -187,6 +187,39 @@ h6 {
     flex-shrink: 0;
 }
 
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown-menu {
+    display: none;
+    background: rgba(0, 0, 0, 0.25);
+    margin: 4px 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown-menu.show {
+    display: block;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-dropdown-menu .nav-link {
+    padding: 8px 20px 8px 44px;
+    font-size: 12.5px;
+    border-left: none;
+}
+
+.nav-dropdown-menu .nav-link:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
 .sidebar-footer {
     padding: 12px;
     border-top: 1px solid var(--surface-border);

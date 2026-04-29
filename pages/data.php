@@ -18,8 +18,31 @@ $stmt->closeCursor();
     <div class="card"><div class="card-header"><h3>Soil Analysis</h3></div><div class="chart-container"><canvas id="soil-chart"></canvas></div></div>
     <div class="card"><div class="card-header"><h3>Weather Overview</h3></div><div class="chart-container"><canvas id="weather-chart"></canvas></div></div>
 </div>
+<?php
+$dataTypeCounts = [
+    'Soil' => (int)$pdo->query("SELECT COUNT(*) FROM soil_data")->fetchColumn(),
+    'Weather' => (int)$pdo->query("SELECT COUNT(*) FROM weather_data")->fetchColumn(),
+    'Irrigation' => (int)$pdo->query("SELECT COUNT(*) FROM irrigation_data")->fetchColumn(),
+    'Equipment' => (int)$pdo->query("SELECT COUNT(*) FROM equipment_data")->fetchColumn()
+];
+
+$sensorStatusRows = $pdo->query("SELECT status, COUNT(*) as count FROM sensor GROUP BY status")->fetchAll();
+$sensorStatusCounts = [];
+foreach ($sensorStatusRows as $row) {
+    $sensorStatusCounts[ucfirst($row['status'])] = (int)$row['count'];
+}
+?>
+<div class="grid-2 mb-24">
+    <div class="card"><div class="card-header"><h3>Data Records by Type</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="data-type-chart"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Sensor Status Distribution</h3></div><div class="chart-container" style="max-height: 220px;"><canvas id="sensor-status-chart"></canvas></div></div>
+</div>
 <div class="card"><div class="card-header"><h3>Data Records</h3></div><div id="data-table">Loading...</div></div>
 <script>
+const dataTypeLabels = <?=json_encode(array_keys($dataTypeCounts))?>;
+const dataTypeValues = <?=json_encode(array_values($dataTypeCounts))?>;
+const sensorStatusLabels = <?=json_encode(array_keys($sensorStatusCounts))?>;
+const sensorStatusValues = <?=json_encode(array_values($sensorStatusCounts))?>;
+
 async function loadData(){
     const type=document.getElementById('filter-type').value;
     const fid=document.getElementById('filter-field').value;
@@ -43,6 +66,23 @@ async function loadData(){
     FarmCharts.renderSoilChart('soil-chart',fieldId);
     FarmCharts.renderWeatherChart('weather-chart',fieldId);
 }
-document.addEventListener('DOMContentLoaded',loadData);
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    
+    FarmCharts.renderPieChart('data-type-chart', dataTypeLabels, dataTypeValues, {
+        'Soil': CHART_COLORS.amber,
+        'Weather': CHART_COLORS.blue,
+        'Irrigation': CHART_COLORS.cyan,
+        'Equipment': CHART_COLORS.violet
+    }, false);
+    
+    FarmCharts.renderPieChart('sensor-status-chart', sensorStatusLabels, sensorStatusValues, {
+        'Active': CHART_COLORS.emerald,
+        'Maintenance': CHART_COLORS.amber,
+        'Inactive': CHART_COLORS.red,
+        'Broken': CHART_COLORS.red
+    }, true);
+});
 </script>
 <?php require_once __DIR__.'/../includes/footer.php';?>
