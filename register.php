@@ -21,6 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($name) || empty($email) || empty($password) || empty($role)) {
         $error = 'Please fill in all required fields.';
+    } elseif ($phone && !preg_match('/^[0-9]{10}$/', $phone)) {
+        $error = 'Phone number must be exactly 10 digits.';
+    } elseif (!preg_match('/^(?=.*\d)(?=.*[\W_]).{8,12}$/', $password)) {
+        $error = 'Password must be 8-12 characters, and include at least 1 number and 1 special symbol.';
     } elseif (!in_array($role, ['farmer', 'agronomist', 'technician'])) {
         $error = 'Invalid role selected.';
     } else {
@@ -97,12 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="reg-password">Password *</label>
-                    <input class="form-control" type="password" id="reg-password" name="password" placeholder="Create a password" required>
+                    <input class="form-control" type="password" id="reg-password" name="password" placeholder="8-12 chars, 1 number, 1 special symbol" required minlength="8" maxlength="12" pattern="^(?=.*\d)(?=.*[\W_]).{8,12}$" title="Password must be between 8 and 12 characters long, and contain at least one number and one special symbol.">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="reg-phone">Phone Number</label>
-                        <input class="form-control" type="text" id="reg-phone" name="phone_number" placeholder="Optional" value="<?= htmlspecialchars($_POST['phone_number'] ?? '') ?>">
+                        <input class="form-control" type="text" id="reg-phone" name="phone_number" placeholder="10 digit number" value="<?= htmlspecialchars($_POST['phone_number'] ?? '') ?>" pattern="[0-9]{10}" maxlength="10" title="Phone number must be exactly 10 digits">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="reg-role">Role *</label>
