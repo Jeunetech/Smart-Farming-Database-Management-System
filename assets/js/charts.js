@@ -36,12 +36,17 @@ const FarmCharts = {
     },
 
     /** Soil Data — Dual axis line chart */
-    async renderSoilChart(canvasId, fieldId = null) {
+    async renderSoilChart(canvasId, fieldId = null, preloadedData = null) {
         this.destroy(canvasId);
-        let url = 'data.php?type=soil';
-        if (fieldId) url += `&field_id=${fieldId}`;
+        let data;
+        if (preloadedData) {
+            data = preloadedData;
+        } else {
+            let url = 'data.php?type=soil';
+            if (fieldId) url += `&field_id=${fieldId}`;
+            try { data = await App.api(url); } catch (e) { console.error(e); return; }
+        }
         try {
-            const data = await App.api(url);
             const records = Array.isArray(data) ? data : (data.data || []);
             if (!records.length) return;
             const labels = records.map(d => App.formatDate(d.sample_date || d.timestamp));
@@ -64,12 +69,17 @@ const FarmCharts = {
     },
 
     /** Weather Data — Combined bar + line */
-    async renderWeatherChart(canvasId, fieldId = null) {
+    async renderWeatherChart(canvasId, fieldId = null, preloadedData = null) {
         this.destroy(canvasId);
-        let url = 'data.php?type=weather';
-        if (fieldId) url += `&field_id=${fieldId}`;
+        let data;
+        if (preloadedData) {
+            data = preloadedData;
+        } else {
+            let url = 'data.php?type=weather';
+            if (fieldId) url += `&field_id=${fieldId}`;
+            try { data = await App.api(url); } catch (e) { console.error(e); return; }
+        }
         try {
-            const data = await App.api(url);
             const records = Array.isArray(data) ? data : (data.data || []);
             if (!records.length) return;
             const labels = records.map(d => App.formatDate(d.timestamp));

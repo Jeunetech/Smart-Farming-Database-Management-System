@@ -63,6 +63,21 @@ function getUserRole(int $userId, PDO $pdo): string {
     return $role;
 }
 
+function getAllUserRoles(PDO $pdo): array {
+    $stmt = $pdo->query("
+        SELECT user_id, 
+            CASE 
+                WHEN user_id IN (SELECT user_id FROM farmer) THEN 'farmer'
+                WHEN user_id IN (SELECT user_id FROM agronomist) THEN 'agronomist'
+                WHEN user_id IN (SELECT user_id FROM technician) THEN 'technician'
+                WHEN user_id IN (SELECT user_id FROM dba) THEN 'dba'
+                ELSE 'unknown'
+            END as role
+        FROM `user`
+    ");
+    return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+}
+
 function loginUser(array $user, string $role): void {
     $_SESSION['user_id']           = $user['user_id'];
     $_SESSION['user_name']         = $user['name'];

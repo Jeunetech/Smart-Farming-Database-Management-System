@@ -10,8 +10,16 @@ $fieldCount = $stats['field_count'];
 $sensorCount = $stats['sensor_count'];
 $dataCount = $stats['data_count'];
 
-$users = $pdo->query("SELECT * FROM v_admin_users ORDER BY user_id")->fetchAll();
-foreach ($users as &$u) { $u['role'] = getUserRole($u['user_id'], $pdo); }
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = 5;
+$offset = ($page - 1) * $limit;
+
+$users = $pdo->query("SELECT user_id, name, email, permissions_level FROM `user` ORDER BY user_id LIMIT $limit OFFSET $offset")->fetchAll();
+$allRoles = getAllUserRoles($pdo);
+foreach ($users as $k => $v) { $users[$k]['role'] = $allRoles[$v['user_id']] ?? 'unknown'; }
+
+$totalUsers = $pdo->query("SELECT COUNT(*) FROM `user`")->fetchColumn();
+$totalPages = ceil($totalUsers / $limit);
 
 $recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC LIMIT 8")->fetchAll();
 ?>
@@ -31,6 +39,22 @@ $recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC
     <?php foreach($users as $u):?>
     <tr><td>#<?=$u['user_id']?></td><td style="color:var(--text-primary);font-weight:500"><?=htmlspecialchars($u['name'])?></td><td><?=htmlspecialchars($u['email'])?></td><td><span class="badge badge-info"><?=ucfirst($u['role'])?></span></td><td><?=$u['permissions_level']?></td></tr>
     <?php endforeach;?></tbody></table></div>
+    
+    <?php if($totalPages > 1): ?>
+    <div style="padding: 1rem; display: flex; gap: 0.5rem; justify-content: center; align-items: center; border-top: 1px solid var(--border-color);">
+        <?php if($page > 1): ?>
+            <a href="?page=<?= $page - 1 ?>" class="btn btn-sm btn-secondary"><i class="fas fa-chevron-left"></i> Prev</a>
+        <?php endif; ?>
+        
+        <?php for($i = 1; $i <= $totalPages; $i++): ?>
+            <a href="?page=<?= $i ?>" class="btn btn-sm <?= $i === $page ? 'btn-primary' : 'btn-secondary' ?>"><?= $i ?></a>
+        <?php endfor; ?>
+        
+        <?php if($page < $totalPages): ?>
+            <a href="?page=<?= $page + 1 ?>" class="btn btn-sm btn-secondary">Next <i class="fas fa-chevron-right"></i></a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 </div>
 <div class="card mb-24">
     <div class="card-header">
@@ -46,8 +70,16 @@ $recentData = $pdo->query("SELECT * FROM v_recent_data ORDER BY `timestamp` DESC
 $stmtFields = $pdo->query("CALL GetAllFields()");
 $allFields = $stmtFields->fetchAll();
 $stmtFields->closeCursor();
+
+$soilData = $pdo->query("SELECT d.*, sd.ph_level, sd.moisture, sd.nutrient_levels, sd.sample_date, f.location as field_location FROM data_table d INNER JOIN soil_data sd ON d.data_id = sd.data_id JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 50")->fetchAll();
+$weatherData = $pdo->query("SELECT d.*, wd.temperature, wd.humidity, wd.rainfall, wd.wind_speed, f.location as field_location FROM data_table d INNER JOIN weather_data wd ON d.data_id = wd.data_id JOIN field f ON d.field_id = f.field_id ORDER BY d.`timestamp` DESC LIMIT 50")->fetchAll();
 ?>
 <script>
-document.addEventListener('DOMContentLoaded',()=>{FarmCharts.renderSoilChart('soil-chart');FarmCharts.renderWeatherChart('weather-chart');});
+const inlineSoilData = <?=json_encode($soilData)?>;
+const inlineWeatherData = <?=json_encode($weatherData)?>;
+document.addEventListener('DOMContentLoaded', () => {
+    FarmCharts.renderSoilChart('soil-chart', null, inlineSoilData);
+    FarmCharts.renderWeatherChart('weather-chart', null, inlineWeatherData);
+});
 </script>
 <?php require_once __DIR__.'/../includes/footer.php';?>

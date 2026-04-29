@@ -29,7 +29,8 @@ switch ($method) {
         } else {
             $stmt = $pdo->query("SELECT user_id, name, email, phone_number, permissions_level, experience_level FROM `user` ORDER BY user_id");
             $users = $stmt->fetchAll();
-            foreach ($users as &$u) { $u['role'] = getUserRole($u['user_id'], $pdo); }
+            $allRoles = getAllUserRoles($pdo);
+            foreach ($users as $k => $v) { $users[$k]['role'] = $allRoles[$v['user_id']] ?? 'unknown'; }
             jsonResponse($users);
         }
         break;
