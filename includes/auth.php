@@ -43,24 +43,24 @@ function getCurrentUser(): array {
 
 
 function getUserRole(int $userId, PDO $pdo): string {
+    static $roleCache = [];
+    if (isset($roleCache[$userId])) return $roleCache[$userId];
 
-    $stmt = $pdo->prepare("SELECT user_id FROM farmer WHERE user_id = ?");
-    $stmt->execute([$userId]);
-    if ($stmt->fetch()) return 'farmer';
-
-    $stmt = $pdo->prepare("SELECT user_id FROM agronomist WHERE user_id = ?");
-    $stmt->execute([$userId]);
-    if ($stmt->fetch()) return 'agronomist';
-
-    $stmt = $pdo->prepare("SELECT user_id FROM technician WHERE user_id = ?");
-    $stmt->execute([$userId]);
-    if ($stmt->fetch()) return 'technician';
-
-    $stmt = $pdo->prepare("SELECT user_id FROM dba WHERE user_id = ?");
-    $stmt->execute([$userId]);
-    if ($stmt->fetch()) return 'dba';
-
-    return 'unknown';
+    $stmt = $pdo->prepare("
+        SELECT 
+            CASE 
+                WHEN EXISTS(SELECT 1 FROM farmer WHERE user_id = ?) THEN 'farmer'
+                WHEN EXISTS(SELECT 1 FROM agronomist WHERE user_id = ?) THEN 'agronomist'
+                WHEN EXISTS(SELECT 1 FROM technician WHERE user_id = ?) THEN 'technician'
+                WHEN EXISTS(SELECT 1 FROM dba WHERE user_id = ?) THEN 'dba'
+                ELSE 'unknown'
+            END as role
+    ");
+    $stmt->execute([$userId, $userId, $userId, $userId]);
+    $role = $stmt->fetchColumn() ?: 'unknown';
+    
+    $roleCache[$userId] = $role;
+    return $role;
 }
 
 function loginUser(array $user, string $role): void {
