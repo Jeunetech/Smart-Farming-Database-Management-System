@@ -33,10 +33,16 @@ switch ($method) {
             if ($fieldId) {
                 $stmt = $pdo->prepare("SELECT c.*, f.location as field_location FROM crop c JOIN field f ON c.field_id = f.field_id WHERE c.field_id = ? ORDER BY c.crop_id");
                 $stmt->execute([$fieldId]);
+                $crops = $stmt->fetchAll();
+                // Use DB function to get the pre-calculated total yield for this field
+                $yieldStmt = $pdo->prepare("SELECT GetTotalYield(?) AS field_total_yield");
+                $yieldStmt->execute([$fieldId]);
+                $totalYield = $yieldStmt->fetchColumn();
+                jsonResponse(['crops' => $crops, 'field_total_yield' => (float)$totalYield]);
             } else {
                 $stmt = $pdo->query("SELECT c.*, f.location as field_location FROM crop c JOIN field f ON c.field_id = f.field_id ORDER BY c.crop_id");
+                jsonResponse($stmt->fetchAll());
             }
-            jsonResponse($stmt->fetchAll());
         }
         break;
 

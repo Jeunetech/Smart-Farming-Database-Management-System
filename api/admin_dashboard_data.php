@@ -63,6 +63,25 @@ try {
             $sensorStatusCounts[ucfirst($row['status'])] = (int)$row['count'];
         }
 
+        // 4. Per-field analytics using stored DB Functions
+        $fieldRows = $pdo->query("SELECT field_id, location FROM field ORDER BY field_id")->fetchAll(PDO::FETCH_ASSOC);
+        $fieldAnalytics = [];
+        foreach ($fieldRows as $field) {
+            $fid = $field['field_id'];
+            $yStmt  = $pdo->prepare("SELECT GetTotalYield(?)           AS total_yield");           $yStmt->execute([$fid]);
+            $phStmt = $pdo->prepare("SELECT GetAverageSoilPH(?)         AS avg_ph");               $phStmt->execute([$fid]);
+            $scStmt = $pdo->prepare("SELECT GetActiveSensorCount(?)     AS active_sensors");        $scStmt->execute([$fid]);
+            $wStmt  = $pdo->prepare("SELECT GetTotalIrrigationWater(?)  AS total_water_used");      $wStmt->execute([$fid]);
+            $fieldAnalytics[] = [
+                'field_id'         => $fid,
+                'location'         => $field['location'],
+                'total_yield'      => (float)$yStmt->fetchColumn(),
+                'avg_soil_ph'      => (float)$phStmt->fetchColumn(),
+                'active_sensors'   => (int)$scStmt->fetchColumn(),
+                'total_water_used' => (float)$wStmt->fetchColumn(),
+            ];
+        }
+
         $response['charts'] = [
             'soilData' => $soilData,
             'weatherData' => $weatherData,
@@ -75,6 +94,7 @@ try {
                 'values' => array_values($sensorStatusCounts)
             ]
         ];
+        $response['field_analytics'] = $fieldAnalytics;
     }
 
     echo json_encode($response);
